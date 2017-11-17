@@ -10,6 +10,8 @@ const index = require('./routes/index');
 const users = require('./routes/users');
 const mongoose = require('mongoose');
 const app = express();
+const session = require('express-session');
+const MongoStore = require('connect-mongo')(session);
 
 const dbURL = 'mongodb://localhost/uberlaundry';
 mongoose.connect(dbURL).then( () => {
@@ -29,7 +31,18 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(session({
+  secret: 'super uber laundry',
+  resave: true,
+  saveUninitialized: true,
+  cookie: { maxAge: 60000 },
+  store: new MongoStore({
+    mongooseConnection: mongoose.connection,
+    ttl: 24 * 60 * 60 // 1 day
+  })
+}));
 
+//Routes
 app.use('/', index);
 app.use('/users', users);
 app.use('/', authRoute);
