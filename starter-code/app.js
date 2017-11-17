@@ -7,6 +7,7 @@ const bodyParser = require('body-parser');
 const expressLayouts = require('express-ejs-layouts');
 const authRoute = require('./routes/auth')
 const index = require('./routes/index');
+const laundryRoute = require('./routes/laundry');
 const users = require('./routes/users');
 const mongoose = require('mongoose');
 const app = express();
@@ -42,10 +43,23 @@ app.use(session({
   })
 }));
 
+app.use((req, res, next) => {
+  if (req.session.currentUser) {
+    res.locals.currentUserInfo = req.session.currentUser;
+    res.locals.isUserLoggedIn = true;
+  } else {
+    res.locals.isUserLoggedIn = false;
+  }
+
+  next();
+});
+
 //Routes
 app.use('/', index);
 app.use('/users', users);
 app.use('/', authRoute);
+app.use('/', laundryRoute);
+
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
